@@ -25,11 +25,6 @@ if (dbHost != "" && dbPort != -1 && dbUsername != "" && dbPassword != "" && dbDa
     StopResource(GetCurrentResourceName())
 }
 
-exports("goofyFn", (n: number) => {
-    console.log(`some var n: ${n}`)
-    return "hehe"
-})
-
 exports("insert", (table: string, columnNames: string[], columnValues: string[]): Promise<boolean> => {
     return new Promise(resolve => {
         let columnValuesStr = [...Array(columnValues.length).keys()].map(n => `$${n + 1}`).join(", ")
