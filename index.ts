@@ -5,6 +5,7 @@ let dbPort: number = GetConvarInt("postgres_port", -1)
 let dbUsername: string = GetConvar("postgres_username", "")
 let dbPassword: string = GetConvar("postgres_password", "")
 let dbDatabase: string = GetConvar("postgres_database", "")
+let isConnected: boolean = false
 
 const sql_conn = new Client({
     host: dbHost,
@@ -19,11 +20,17 @@ if (dbHost != "" && dbPort != -1 && dbUsername != "" && dbPassword != "" && dbDa
         .then(_ => {
             console.log(`PostgresSQL connected (database: ${dbDatabase})`)
             emit("pg:connected")
+            isConnected = true
         })
 } else {
     console.log("PostgresSQL config not properly set in server.cfg")
     StopResource(GetCurrentResourceName())
 }
+
+exports("ready", (callback: () => void) => {
+    while (!isConnected) { }
+    callback()
+})
 
 exports("insert", (table: string, columnNames: string[], columnValues: string[]): Promise<boolean> => {
     return new Promise(resolve => {
