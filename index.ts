@@ -48,7 +48,7 @@ exports("insert", (table: string, columnNames: string[], columnValues: string[])
     })
 })
 
-exports("select", (table: string, columns: string[], predicate?: string, predicateValues?: string[]): Promise<object[]> => {
+function selectQuery(table: string, columns: string[], single: boolean, predicate?: string, predicateValues?: string[]): Promise<object[] | object> {
     return new Promise(resolve => {
         let columnStr: string = ""
         if (columns.length == 0) columnStr = "*"
@@ -67,10 +67,20 @@ exports("select", (table: string, columns: string[], predicate?: string, predica
         }
         sql_conn.query(`SELECT ${columnStr} FROM ${table} ${newPredicate}`, predicateValues == undefined ? [] : predicateValues)
             .then(res => res.rows)
+            .then(rows => single ? rows[0] : rows)
             .then(resolve)
             .catch(e => {
                 console.log(e)
                 resolve([])
             })
     })
+}
+
+exports("select", (table: string, columns: string[], predicate?: string, predicateValues?: string[]): Promise<object[] | object> => {
+    return selectQuery(table, columns, false, predicate, predicateValues)
+})
+
+exports("selectOne", (table: string, columns: string[], predicate?: string, predicateValues?: string[]): Promise<object> => {
+    return selectQuery(table, columns, true, predicate, predicateValues)
+})
 })
