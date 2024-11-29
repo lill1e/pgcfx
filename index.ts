@@ -106,4 +106,27 @@ exports("delete", (table: string, predicate?: string, predicateValues?: string[]
             })
     })
 })
+
+exports("update", (table: string, updatedColumns: string[], updatedValues: string[], predicate?: string, predicateValues?: string[]): Promise<boolean> => {
+    return new Promise(resolve => {
+        let setStr: string = [...Array(updatedColumns.length).keys()].map(n => `${updatedColumns[n]} = $${n + 1}`).join(", ")
+        let newPredicate: string = ""
+        if (predicate != undefined) {
+            if (predicate.length > 0) newPredicate = "WHERE "
+            let counter = updatedColumns.length + 1
+            for (let i = 0; i < predicate.length; i++) {
+                if (predicate.charAt(i) == "?") {
+                    newPredicate += `$${counter++}`
+                } else {
+                    newPredicate += predicate.charAt(i)
+                }
+            }
+        }
+        sql_conn.query(`UPDATE ${table} SET ${setStr} ${newPredicate}`, [...updatedValues, ...predicateValues == undefined ? [] : predicateValues])
+            .then(data => resolve(data.rowCount != null && data.rowCount > 0))
+            .catch(e => {
+                console.log(e)
+                resolve(false)
+            })
+    })
 })
