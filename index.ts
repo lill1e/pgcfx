@@ -83,4 +83,27 @@ exports("select", (table: string, columns: string[], predicate?: string, predica
 exports("selectOne", (table: string, columns: string[], predicate?: string, predicateValues?: string[]): Promise<object> => {
     return selectQuery(table, columns, true, predicate, predicateValues)
 })
+
+exports("delete", (table: string, predicate?: string, predicateValues?: string[]): Promise<boolean> => {
+    return new Promise(resolve => {
+        let newPredicate: string = ""
+        if (predicate != undefined) {
+            if (predicate.length > 0) newPredicate = "WHERE "
+            let counter = 1
+            for (let i = 0; i < predicate.length; i++) {
+                if (predicate.charAt(i) == "?") {
+                    newPredicate += `$${counter++}`
+                } else {
+                    newPredicate += predicate.charAt(i)
+                }
+            }
+        }
+        sql_conn.query(`DELETE FROM ${table} ${newPredicate}`, predicateValues == undefined ? [] : predicateValues)
+            .then(data => resolve(data.rowCount != null && data.rowCount > 0))
+            .catch(e => {
+                console.log(e)
+                resolve(false)
+            })
+    })
+})
 })
