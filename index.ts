@@ -22,6 +22,10 @@ if (dbHost != "" && dbPort != -1 && dbUsername != "" && dbPassword != "" && dbDa
             emit("pg:connected")
             isConnected = true
         })
+        .catch(e => {
+            console.log(e)
+            StopResource(GetCurrentResourceName())
+        })
 } else {
     console.log("PostgresSQL config not properly set in server.cfg")
     StopResource(GetCurrentResourceName())
