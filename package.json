@@ -1,0 +1,19 @@
+{
+  "name": "postgres-cfx",
+  "version": "1.0.0",
+  "description": "An easy-to-use PostgesSQL wrapper for FiveM",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "@citizenfx/server": "^2.0.11535-1",
+    "@types/pg": "^8.11.10"
+  }
+}
