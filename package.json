@@ -1,5 +1,5 @@
 {
-  "name": "postgres-cfx",
+  "name": "pgcfx",
   "version": "1.0.0",
   "description": "An easy-to-use PostgesSQL wrapper for FiveM",
   "main": "index.js",
