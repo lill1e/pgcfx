@@ -43,7 +43,7 @@ exports("insert", (table: string, columnNames: string[], columnValues: string[])
             .then(data => resolve(data.rowCount != null && data.rowCount > 0))
             .catch(e => {
                 console.log(e)
-                resolve(false)
+                resolve(0)
             })
     })
 })
@@ -67,11 +67,11 @@ function selectQuery(table: string, columns: string[], single: boolean, predicat
         }
         sql_conn.query(`SELECT ${columnStr} FROM ${table} ${newPredicate}`, predicateValues == undefined ? [] : predicateValues)
             .then(res => res.rows)
-            .then(rows => single ? rows[0] : rows)
+            .then(rows => single ? (rows.length > 0 ? rows[0] : null) : rows)
             .then(resolve)
             .catch(e => {
                 console.log(e)
-                resolve([])
+                resolve(single ? null : [])
             })
     })
 }
@@ -99,10 +99,10 @@ exports("delete", (table: string, predicate?: string, predicateValues?: string[]
             }
         }
         sql_conn.query(`DELETE FROM ${table} ${newPredicate}`, predicateValues == undefined ? [] : predicateValues)
-            .then(data => resolve(data.rowCount != null && data.rowCount > 0))
+            .then(data => resolve(data.rowCount != null ? data.rowCount : 0))
             .catch(e => {
                 console.log(e)
-                resolve(false)
+                resolve(0)
             })
     })
 })
@@ -123,10 +123,10 @@ exports("update", (table: string, updatedColumns: string[], updatedValues: strin
             }
         }
         sql_conn.query(`UPDATE ${table} SET ${setStr} ${newPredicate}`, [...updatedValues, ...predicateValues == undefined ? [] : predicateValues])
-            .then(data => resolve(data.rowCount != null && data.rowCount > 0))
+            .then(data => resolve(data.rowCount != null ? data.rowCount : 0))
             .catch(e => {
                 console.log(e)
-                resolve(false)
+                resolve(0)
             })
     })
 })
