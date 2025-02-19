@@ -15,6 +15,10 @@ const sql_conn = new Client({
     database: dbDatabase
 })
 
+interface MapStrStr {
+    [key: string]: string
+}
+
 if (dbHost != "" && dbPort != -1 && dbUsername != "" && dbPassword != "" && dbDatabase != "") {
     sql_conn.connect()
         .then(_ => {
@@ -36,11 +40,11 @@ exports("ready", (callback: () => void) => {
     callback()
 })
 
-exports("insert", (table: string, columnNames: string[], columnValues: string[]): Promise<boolean> => {
+exports("insert", (table: string, columnNames: string[], columnValues: string[]): Promise<number> => {
     return new Promise(resolve => {
         let columnValuesStr = [...Array(columnValues.length).keys()].map(n => `$${n + 1}`).join(", ")
         sql_conn.query(`INSERT INTO ${table}(${columnNames.join(", ")}) VALUES(${columnValuesStr})`, columnValues)
-            .then(data => resolve(data.rowCount != null && data.rowCount > 0))
+            .then(data => resolve(data.rowCount != null ? data.rowCount : 0))
             .catch(e => {
                 console.log(e)
                 resolve(0)
@@ -48,7 +52,7 @@ exports("insert", (table: string, columnNames: string[], columnValues: string[])
     })
 })
 
-function selectQuery(table: string, columns: string[], single: boolean, predicate?: string, predicateValues?: string[]): Promise<object[] | object> {
+function selectQuery(table: string, columns: string[], single: boolean, predicate?: string, predicateValues?: string[], modifiers?: MapStrStr): Promise<null | object[] | object> {
     return new Promise(resolve => {
         let columnStr: string = ""
         if (columns.length == 0) columnStr = "*"
@@ -65,7 +69,8 @@ function selectQuery(table: string, columns: string[], single: boolean, predicat
                 }
             }
         }
-        sql_conn.query(`SELECT ${columnStr} FROM ${table} ${newPredicate}`, predicateValues == undefined ? [] : predicateValues)
+        let modifiersStr: string = modifiers ? Object.keys(modifiers).map(k => k + " " + modifiers[k]).join(" ") : ""
+        sql_conn.query(`SELECT ${columnStr} FROM ${table} ${newPredicate} ${modifiersStr}`, predicateValues == undefined ? [] : predicateValues)
             .then(res => res.rows)
             .then(rows => single ? (rows.length > 0 ? rows[0] : null) : rows)
             .then(resolve)
@@ -76,15 +81,15 @@ function selectQuery(table: string, columns: string[], single: boolean, predicat
     })
 }
 
-exports("select", (table: string, columns: string[], predicate?: string, predicateValues?: string[]): Promise<object[] | object> => {
-    return selectQuery(table, columns, false, predicate, predicateValues)
+exports("select", (table: string, columns: string[], predicate?: string, predicateValues?: string[], modifiers?: MapStrStr): Promise<null | object[] | object> => {
+    return selectQuery(table, columns, false, predicate, predicateValues, modifiers)
 })
 
-exports("selectOne", (table: string, columns: string[], predicate?: string, predicateValues?: string[]): Promise<object> => {
-    return selectQuery(table, columns, true, predicate, predicateValues)
+exports("selectOne", (table: string, columns: string[], predicate?: string, predicateValues?: string[], modifiers?: MapStrStr): Promise<null | object> => {
+    return selectQuery(table, columns, true, predicate, predicateValues, modifiers)
 })
 
-exports("delete", (table: string, predicate?: string, predicateValues?: string[]): Promise<boolean> => {
+exports("delete", (table: string, predicate?: string, predicateValues?: string[]): Promise<number> => {
     return new Promise(resolve => {
         let newPredicate: string = ""
         if (predicate != undefined) {
@@ -107,7 +112,7 @@ exports("delete", (table: string, predicate?: string, predicateValues?: string[]
     })
 })
 
-exports("update", (table: string, updatedColumns: string[], updatedValues: string[], predicate?: string, predicateValues?: string[]): Promise<boolean> => {
+exports("update", (table: string, updatedColumns: string[], updatedValues: string[], predicate?: string, predicateValues?: string[]): Promise<number> => {
     return new Promise(resolve => {
         let setStr: string = [...Array(updatedColumns.length).keys()].map(n => `${updatedColumns[n]} = $${n + 1}`).join(", ")
         let newPredicate: string = ""
