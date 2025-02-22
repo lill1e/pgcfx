@@ -52,12 +52,13 @@ exports("insert", (table: string, columnNames: string[], columnValues: string[])
     })
 })
 
-function selectQuery(table: string, columns: string[], single: boolean, predicate?: string, predicateValues?: string[], modifiers?: MapStrStr): Promise<null | object[] | object> {
+function selectQuery(table: string, columns: string[], single: boolean, predicate?: string, predicateValues?: string[], modifiers?: MapStrStr, join?: string): Promise<null | object[] | object> {
     return new Promise(resolve => {
         let columnStr: string = ""
         if (columns.length == 0) columnStr = "*"
         else columnStr = columns.join(", ")
         let newPredicate: string = ""
+        let joinStr: string = ""
         if (predicate != undefined) {
             if (predicate.length > 0) newPredicate = "WHERE "
             let counter = 1
@@ -69,8 +70,12 @@ function selectQuery(table: string, columns: string[], single: boolean, predicat
                 }
             }
         }
+        if (join != undefined) {
+            joinStr += `${table} JOIN ${join.split(" ")[0]} ${join}`
+        }
+        console.log(joinStr)
         let modifiersStr: string = modifiers ? Object.keys(modifiers).map(k => k + " " + modifiers[k]).join(" ") : ""
-        sql_conn.query(`SELECT ${columnStr} FROM ${table} ${newPredicate} ${modifiersStr}`, predicateValues == undefined ? [] : predicateValues)
+        sql_conn.query(`SELECT ${columnStr} FROM ${table} ${joinStr} ${newPredicate} ${modifiersStr}`, predicateValues == undefined ? [] : predicateValues)
             .then(res => res.rows)
             .then(rows => single ? (rows.length > 0 ? rows[0] : null) : rows)
             .then(resolve)
@@ -81,12 +86,12 @@ function selectQuery(table: string, columns: string[], single: boolean, predicat
     })
 }
 
-exports("select", (table: string, columns: string[], predicate?: string, predicateValues?: string[], modifiers?: MapStrStr): Promise<null | object[] | object> => {
-    return selectQuery(table, columns, false, predicate, predicateValues, modifiers)
+exports("select", (table: string, columns: string[], predicate?: string, predicateValues?: string[], modifiers?: MapStrStr, join?: string): Promise<null | object[] | object> => {
+    return selectQuery(table, columns, false, predicate, predicateValues, modifiers, join)
 })
 
-exports("selectOne", (table: string, columns: string[], predicate?: string, predicateValues?: string[], modifiers?: MapStrStr): Promise<null | object> => {
-    return selectQuery(table, columns, true, predicate, predicateValues, modifiers)
+exports("selectOne", (table: string, columns: string[], predicate?: string, predicateValues?: string[], modifiers?: MapStrStr, join?: string): Promise<null | object> => {
+    return selectQuery(table, columns, true, predicate, predicateValues, modifiers, join)
 })
 
 exports("delete", (table: string, predicate?: string, predicateValues?: string[]): Promise<number> => {
