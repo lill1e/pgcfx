@@ -73,7 +73,6 @@ function selectQuery(table: string, columns: string[], single: boolean, predicat
         if (join != undefined) {
             joinStr += `${table} JOIN ${join.split(" ")[0]} ${join}`
         }
-        console.log(joinStr)
         let modifiersStr: string = modifiers ? Object.keys(modifiers).map(k => k + " " + modifiers[k]).join(" ") : ""
         sql_conn.query(`SELECT ${columnStr} FROM ${table} ${joinStr} ${newPredicate} ${modifiersStr}`, predicateValues == undefined ? [] : predicateValues)
             .then(res => res.rows)
