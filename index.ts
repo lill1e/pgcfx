@@ -71,10 +71,10 @@ function selectQuery(table: string, columns: string[], single: boolean, predicat
             }
         }
         if (join != undefined) {
-            joinStr += `${table} JOIN ${join.split(" ")[0]} ${join}`
+            joinStr += `${table} ${(modifiers && modifiers.JOIN) ? (`${modifiers.JOIN} `) : ""}JOIN ${join.split(" ")[0]} ${join} `
         }
-        let modifiersStr: string = modifiers ? Object.keys(modifiers).map(k => k + " " + modifiers[k]).join(" ") : ""
-        sql_conn.query(`SELECT ${columnStr} FROM ${table} ${joinStr} ${newPredicate} ${modifiersStr}`, predicateValues == undefined ? [] : predicateValues)
+        let modifiersStr: string = modifiers ? Object.keys(modifiers).filter(k => k != "JOIN").map(k => k + " " + modifiers[k]).join(" ") : ""
+        sql_conn.query(`SELECT ${columnStr} FROM ${table} ${joinStr} ${newPredicate} ${modifiersStr} `, predicateValues == undefined ? [] : predicateValues)
             .then(res => res.rows)
             .then(rows => single ? (rows.length > 0 ? rows[0] : null) : rows)
             .then(resolve)
