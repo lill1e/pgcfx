@@ -40,11 +40,11 @@ exports("ready", (callback: () => void) => {
     callback()
 })
 
-exports("insert", (table: string, columnNames: string[], columnValues: string[]): Promise<number> => {
+exports("insert", (table: string, columnNames: string[], columnValues: string[], returning: string | null): Promise<number | any> => {
     return new Promise(resolve => {
-        let columnValuesStr = [...Array(columnValues.length).keys()].map(n => `$${n + 1}`).join(", ")
-        sql_conn.query(`INSERT INTO ${table}(${columnNames.join(", ")}) VALUES(${columnValuesStr})`, columnValues)
-            .then(data => resolve(data.rowCount != null ? data.rowCount : 0))
+        let columnValuesStr = [...Array(columnValues.length).keys()].map(n => n === null ? "NULL" : `$${n + 1} `).join(", ")
+        sql_conn.query(`INSERT INTO ${table} (${columnNames.join(", ")}) VALUES(${columnValuesStr})${returning != null ? "RETURNING " + returning : ""} `, columnValues)
+            .then(data => resolve(returning == null ? (data.rowCount != null ? data.rowCount : 0) : data.rows))
             .catch(e => {
                 console.log(e)
                 resolve(0)
@@ -131,7 +131,8 @@ exports("update", (table: string, updatedColumns: string[], updatedValues: strin
                 }
             }
         }
-        sql_conn.query(`UPDATE ${table} SET ${setStr} ${newPredicate}`, [...updatedValues, ...predicateValues == undefined ? [] : predicateValues])
+        let vals: (string | null)[] = updatedValues.map(v => v == "NULL" ? null : v)
+        sql_conn.query(`UPDATE ${table} SET ${setStr} ${newPredicate} `, [...vals, ...predicateValues == undefined ? [] : predicateValues])
             .then(data => resolve(data.rowCount != null ? data.rowCount : 0))
             .catch(e => {
                 console.log(e)
