@@ -22,7 +22,7 @@ interface MapStrStr {
 if (dbHost != "" && dbPort != -1 && dbUsername != "" && dbPassword != "" && dbDatabase != "") {
     sql_conn.connect()
         .then(_ => {
-            console.log(`PostgresSQL connected (database: ${dbDatabase})`)
+            console.log(`PostgresSQL connected(database: ${dbDatabase})`)
             emit("pg:connected")
             isConnected = true
         })
